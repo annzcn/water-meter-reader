@@ -17,7 +17,7 @@ def draw_contour(img):
 
 
 if __name__ == '__main__':
-    file_dir = '../water_meter_images/IMG_.jpg'
+    file_dir = '../water_meter_images/IMG_1360.jpg'
     img = cv2.imread(file_dir)
     result = draw_contour(img)
     plt.imshow(result)
