@@ -15,13 +15,13 @@ def draw_contour(img):
     for cnt in cnts:
         if cv2.contourArea(cnt) > 10000:
             print('此轮廓的面积 = ', cv2.contourArea(cnt))
-            [x, y, width, height] = cv2.boundingRect(cnt)
+            [x, y, width, height] = cv2.minAreaRect(cnt)
             if (height > 400 and height < 500 and width > 800) or (width > 400 and width < 500 and height > 800):
                 cv2.rectangle(img, (x, y), (x + width, y + height), (255, 0, 0), 20)
     return thresh, img
 
 if __name__ == '__main__':
-    img = cv2.imread('../water_meter_images/IMG_1361.jpg')
+    img = cv2.imread('../water_meter_images/IMG_0544.jpg')
     dst = img_processing(img)
     thresh, result = draw_contour(dst)
     plt.subplot(121)

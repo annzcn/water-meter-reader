@@ -51,14 +51,60 @@ def OpenOperation(img):
     erosion = cv2.erode(dilation, kernel, iterations=3)
     return erosion
 
+# 照片大小均为3024*4032
+def findContours(original, img):
+    minmumOfPictureArea = 3024*4032*0.02
+    maxOfPictureArea = 3024*4032*0.06
+    _, contours, hierachy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    contoursToFind = []
+    angleToRotate = 0.0
+    rotateFlag = False
+    for contour in contours:
+        contourArea = cv2.contourArea(contour)
+        if (contourArea>=minmumOfPictureArea) and (contourArea<=maxOfPictureArea):
+            ret = cv2.minAreaRect(contour)
+            weight = ret[1][0]
+            height = ret[1][1]
+            rateOfWeightToHeight = 0.0
+            rateOfHeightToWeight = 0.0
+            if (weight > 0.0 and height > 0.0):
+                rateOfWeightToHeight = weight / height
+                rateOfHeightToWeight = height / weight
+            if (rateOfHeightToWeight> 3.5 and rateOfHeightToWeight<3.8) or (rateOfWeightToHeight>3.5 and rateOfWeightToHeight<3.8):
+                if(weight > height):
+                    rotateFlag = True
+                print(ret)
+                contoursToFind.append(contour)
+                cv2.drawContours(original, contour, -1, (255, 0, 0), 10)
+                angleToRotate = ret[2]
+                center = ret[0]
+    # if(len(contoursToFind)!=1): 若识别到的轮廓数不等于1，记得改写！
+    return img, angleToRotate, center, rotateFlag
+
+
+# 旋转图像
+def rotate(img, angle, center=None, scale=1.0):
+    height, weight = img.shape[:2]
+    if center is None:
+        center = (weight/2, height/2)
+    M = cv2.getRotationMatrix2D(center, angle, scale)
+    rotatedImg = cv2.warpAffine(img, M, (weight, height))
+    return rotatedImg
+
 if __name__ == '__main__':
-    img = cv2.imread('../water_meter_images/IMG_0597.jpg')
+    img = cv2.imread('../water_meter_images/IMG_0546.jpg')
+    angleToratate = 0.0
     dst = bilateralFilter(img)
     dst = greyWorld(dst)
     dst = contrastEnhancement(dst)
     dst = cv2.cvtColor(dst, cv2.COLOR_BGR2GRAY)
     dst = AdaptiveThreshold(dst)
     dst = OpenOperation(dst)
+    dst, angleToratate, center, rotateFlag = findContours(img, dst)
+    if rotateFlag :
+        dst = rotate(img, 180 + angleToratate)
+    else:
+        dst = rotate(img, 90 + angleToratate)
 
     plt.subplot(121)
     plt.imshow(img)
