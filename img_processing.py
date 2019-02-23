@@ -75,11 +75,14 @@ def findContours(original, img):
                     rotateFlag = True
                 print(ret)
                 contoursToFind.append(contour)
-                cv2.drawContours(original, contour, -1, (255, 0, 0), 10)
+                # cv2.drawContours(original, contour, -1, (255, 0, 0), 10)
                 angleToRotate = ret[2]
                 center = ret[0]
+                box = cv2.boxPoints(ret)
+                box = np.int0(box)
+                print('box = ', box)
     # if(len(contoursToFind)!=1): 若识别到的轮廓数不等于1，记得改写！
-    return img, angleToRotate, center, rotateFlag
+    return img, angleToRotate, center, rotateFlag, box
 
 
 # 旋转图像
@@ -100,15 +103,25 @@ if __name__ == '__main__':
     dst = cv2.cvtColor(dst, cv2.COLOR_BGR2GRAY)
     dst = AdaptiveThreshold(dst)
     dst = OpenOperation(dst)
-    dst, angleToratate, center, rotateFlag = findContours(img, dst)
+    dst, angleToratate, center, rotateFlag, box = findContours(img, dst)
+
     if rotateFlag :
-        dst = rotate(img, 180 + angleToratate)
+        dst = rotate(dst, 180 + angleToratate)
     else:
-        dst = rotate(img, 90 + angleToratate)
+        dst = rotate(dst, 90 + angleToratate)
+    dst, angleToratate, center, rotateFlag, box = findContours(dst, dst)
+    x1 = np.min(box[0:3, 0])
+    x2 = np.max(box[0:3, 0])
+    y1 = np.min(box[0:3, 1])
+    y2 = np.max(box[0:3, 1])
+    print('x1 = %s, x2=%s, y1=%s, y2=%s'%(x1, x2, y1, y2))
+    dst = dst[y1:y2, x1:x2]
 
     plt.subplot(121)
     plt.imshow(img)
     plt.subplot(122)
     plt.imshow(dst, cmap='gray')
     plt.show()
+
+
 
